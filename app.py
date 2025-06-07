@@ -10,7 +10,7 @@ import streamlit_antd_components as std
 
 st.set_page_config(layout='wide')
 head1, head2, head3 = st.columns([1,1,1])
-head2.markdown("<h1 style=color: #2c3e50; font-size: 48px;text-align; center>Analysis Platform</h1>", unsafe_allow_html=True)
+head2.markdown("<h1 style=color: #2c3e50; font-size: 38px;text-align; center>Analysis Platform</h1>", unsafe_allow_html=True)
 # head2.markdown("<h3 style=color: #34495e; font-size: 32px; text-align: center;>Grail Analytics</h2>", unsafe_allow_html=True)
 st.sidebar.subheader('Data Import')
 data1 = st.sidebar.file_uploader('Choose Data 1 File' )
