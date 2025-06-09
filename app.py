@@ -79,7 +79,7 @@ if data1Yes:
 
 if data2Yes:
     with view2:
-        view2Data = st.selectbox('Choose Data', options=['Data1', 'Data2'], key='view2Data')
+        view2Data = st.selectbox('Choose Data', options=['Data1', 'Data2'], key='view2Data', index=1)
         if view2Data == 'Data1':
             view2_data = data1
         else:
