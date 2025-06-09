@@ -20,9 +20,13 @@ data1Yes = True if data1 else False
 data2Yes = True if data2 else False 
 
 def cleanCol(data,col, itemToRemove):
-    data[col] = data[col].str.replace(itemToRemove,'')
-    data[col] = data[col].astype(float)
-    return data[col]
+    if col in data.columns.to_list():
+        data[col] = data[col].str.replace(itemToRemove,'')
+        data[col] = data[col].astype(float)
+        return data[col]
+    else:
+        st.error(f'{col} was not part of the columns used in creating the application. Dont be stupid')
+        st.toast('E never reach make you still get sense? I said use the same columns used in the first data you gave me. Why you no dey hear word')
 
 if data1Yes:
     data1 = pd.read_csv(data1)
