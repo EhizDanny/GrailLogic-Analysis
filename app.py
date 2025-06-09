@@ -87,8 +87,8 @@ if data2Yes:
 
         respCol2 = st.selectbox('Response Column', options= ['Select Column']+view2_data.columns.tolist(), key='ll')
         if data2Yes and respCol2 != 'Select Column':
-            view2_data[respCol1] = view2_data[respCol2].astype(float)
-            fig = px.line(data_frame = view2_data, x = 'Date/Time', y = respCol2, title=f'{respCol1} By Time')
+            view2_data[respCol2] = view2_data[respCol2].astype(float)
+            fig = px.line(data_frame = view2_data, x = 'Date/Time', y = respCol2, title=f'{respCol2} By Time')
             st.plotly_chart(fig, theme='streamlit' ,key='po')
 
 std.divider('Joint Chart', align='center')
