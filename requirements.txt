@@ -3,3 +3,4 @@ pandas
 streamlit
 streamlit-antd-components
 seaborn
+streamlit_extras
