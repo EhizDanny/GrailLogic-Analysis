@@ -144,7 +144,7 @@ def analysis():
                         colss.remove('Month')
                         resp = st.selectbox('Choose The Response Column', options= colss, key=f'{index}_resp')
                         aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key=f'{index}_aggre')
-                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None None
+                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
                         data_.set_index('Date/Time', inplace=True)
                         data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
