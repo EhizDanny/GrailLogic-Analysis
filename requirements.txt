@@ -4,3 +4,4 @@ streamlit
 streamlit-antd-components
 seaborn
 streamlit_extras
+tinydb
