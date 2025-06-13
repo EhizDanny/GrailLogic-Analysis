@@ -18,6 +18,18 @@ head2.markdown(
     "<h1 style='color: #5409DA; font-size: 38px; text-align: center;'>ANALYSIS PLATFORM</h1>",unsafe_allow_html=True)
 # antd.divider('Trade Chart', align='center')
 
+st.markdown("""
+    <style>
+        .reportview-container {
+            margin-top: -2em;
+        }
+        #MainMenu {visibility: hidden;}
+        .stDeployButton {display:none;}
+        footer {visibility: hidden;}
+        #stDecoration {display:none;}
+    </style>
+""", unsafe_allow_html=True)
+
 # Initialize session state counter if not exists
 if 'counter' not in st.session_state:
     st.session_state['counter'] = 1
