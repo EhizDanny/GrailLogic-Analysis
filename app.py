@@ -199,7 +199,7 @@ def analysis():
                             combined = combined[['Date/Time', resp2]]
                             combined['Date/Time'] = pd.to_datetime(combined['Date/Time'])
                             combined.set_index('Date/Time', inplace=True)
-                            aggregation = 'D' if aggre2 == 'Daily' else 'M' if aggre2 == 'Monthly' else 'Y'  if aggre2 == 'Yearly' else 'W' if aggre == 'Weekly' else None
+                            aggregation = 'D' if aggre2 == 'Daily' else 'M' if aggre2 == 'Monthly' else 'Y'  if aggre2 == 'Yearly' else 'W' if aggre2 == 'Weekly' else None
                             combined = combined.resample(aggregation).sum()
                             figss = px.line(combined, x=combined.index, y=resp2, title=f'Joint {resp2} For Selected Datasets')
                     else:
