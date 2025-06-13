@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 st.set_page_config(layout='wide', page_icon=':chart_with_upwards_trend:', page_title='Grail Analytics')
 head1, head2, head3 = st.columns([1,1,1])
 head2.markdown(
-    "<h1 style='color: #5409DA; font-size: 38px; text-align: center;'>ANALYSIS PLATFORM</h1>",unsafe_allow_html=True)
+    "<h1 style='color: #213448; font-size: 38px; text-align: center;'>ANALYSIS PLATFORM</h1>",unsafe_allow_html=True)
 # antd.divider('Trade Chart', align='center')
 
 st.markdown("""
