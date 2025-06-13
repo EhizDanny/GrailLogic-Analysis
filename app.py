@@ -105,8 +105,8 @@ def analysis():
                         colss.remove('Year')
                         colss.remove('Month')
                         resp = st.selectbox('Choose The Response Column', options= colss, key=f'{index}_resp')
-                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Monthly', 'Yearly'], key=f'{index}_aggre')
-                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else None
+                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key=f'{index}_aggre')
+                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
                         data_.set_index('Date/Time', inplace=True)
                         data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
@@ -143,8 +143,8 @@ def analysis():
                         colss.remove('Year')
                         colss.remove('Month')
                         resp = st.selectbox('Choose The Response Column', options= colss, key=f'{index}_resp')
-                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Monthly', 'Yearly'], key=f'{index}_aggre')
-                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else None
+                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key=f'{index}_aggre')
+                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None None
                         data_.set_index('Date/Time', inplace=True)
                         data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
@@ -184,7 +184,7 @@ def analysis():
                 colu.remove('Year')
                 colu.remove('Month')
                 resp2 = st.selectbox('Select Column', options = colu, key='j1')
-                aggre2 = st.selectbox('Aggregate The Data', options= ['Daily', 'Monthly', 'Yearly'], key='aggre')
+                aggre2 = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key='aggre')
 
                 if len(selData) >1:
                     # st.write(selData)
@@ -199,7 +199,7 @@ def analysis():
                             combined = combined[['Date/Time', resp2]]
                             combined['Date/Time'] = pd.to_datetime(combined['Date/Time'])
                             combined.set_index('Date/Time', inplace=True)
-                            aggregation = 'D' if aggre2 == 'Daily' else 'M' if aggre2 == 'Monthly' else 'Y'  if aggre2 == 'Yearly' else None
+                            aggregation = 'D' if aggre2 == 'Daily' else 'M' if aggre2 == 'Monthly' else 'Y'  if aggre2 == 'Yearly' else 'W' if aggre == 'Weekly' else None
                             combined = combined.resample(aggregation).sum()
                             figss = px.line(combined, x=combined.index, y=resp2, title=f'Joint {resp2} For Selected Datasets')
                     else:
