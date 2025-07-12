@@ -15,20 +15,8 @@ warnings.filterwarnings('ignore')
 st.set_page_config(layout='wide', page_icon=':chart_with_upwards_trend:', page_title='Grail Analytics')
 head1, head2, head3 = st.columns([1,1,1])
 head2.markdown(
-    "<h1 style='color: #213448; font-size: 38px; text-align: center;'>ANALYSIS PLATFORM</h1>",unsafe_allow_html=True)
+    "<h1 style='color: #5409DA; font-size: 38px; text-align: center;'>ANALYSIS PLATFORM</h1>",unsafe_allow_html=True)
 # antd.divider('Trade Chart', align='center')
-
-st.markdown("""
-    <style>
-        .reportview-container {
-            margin-top: -2em;
-        }
-        #MainMenu {visibility: hidden;}
-        .stDeployButton {display:none;}
-        footer {visibility: hidden;}
-        #stDecoration {display:none;}
-    </style>
-""", unsafe_allow_html=True)
 
 # Initialize session state counter if not exists
 if 'counter' not in st.session_state:
@@ -105,7 +93,7 @@ def analysis():
                         colss.remove('Year')
                         colss.remove('Month')
                         resp = st.selectbox('Choose The Response Column', options= colss, key=f'{index}_resp')
-                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key=f'{index}_aggre')
+                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly',  'Monthly', 'Yearly'], key=f'{index}_aggre')
                         aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
                         data_.set_index('Date/Time', inplace=True)
                         data_ = data_.resample(aggregation).sum()
@@ -245,6 +233,7 @@ def get_streaks(data, types='win'):
     indexer = []
     streak = []
     runTimer = 0
+    streak_counts = {}  # dictionary to count occurrences of each streak length
 
     for index, value in enumerate(data.Result):
         if value == types:
@@ -257,16 +246,18 @@ def get_streaks(data, types='win'):
         runTimer = 0
         if counter > 0:
             streak.append(counter)
+            streak_counts[counter] = streak_counts.get(counter, 0) + 1
         counter = 0
 
     # If streak ended at last row, append it
     if counter > 0:
         streak.append(counter)
+        streak_counts[counter] = streak_counts.get(counter, 0) + 1
 
     if not streak:
-        return 0, None
+        return 0, None, {}
 
-    return max(streak), indexer[streak.index(max(streak))]
+    return max(streak), indexer[streak.index(max(streak))], streak_counts
 
 
 @st.fragment
@@ -286,8 +277,8 @@ def lossAndProfit():
         df_trades['Result'] = df_trades['P&L USD'].apply(lambda x: 'win' if x > 0 else 'loss')
 
         # Calculate maximum consecutive wins and losses
-        max_win_streak, win_index = get_streaks(df_trades, 'win')
-        max_loss_streak, loss_index = get_streaks(df_trades, 'loss')
+        max_win_streak, win_index, winCounts = get_streaks(df_trades, 'win')
+        max_loss_streak, loss_index, lossCounts = get_streaks(df_trades, 'loss')
 
         # Display the results
         if index % 2 !=0:
@@ -312,6 +303,10 @@ def lossAndProfit():
                     col12.error(f'Max Loss Streak: {max_loss_streak}' if loss_index is not None else "No Losing Streak Found")
                     col12.error(f'Trade Started At: {df_trades.iloc[loss_index]["Date/Time"]}' if loss_index is not None else 'No Losing Streak Found')
                     
+                    # col13.warning(f'Win Counts: {winCounts}' if win_index is not None else 'No Winning Streak Found')
+                    # col13.warning(f'Loss Counts: {lossCounts}' if loss_index is not None else 'No Losing Streak Found')
+
+
                     col11.markdown('<br>', unsafe_allow_html=True)
                     show = col11.checkbox('Show Data', key=f'showData{index}')
                     if show:
@@ -325,6 +320,15 @@ def lossAndProfit():
                             use_container_width=True
                         )
                     st.divider()
+                    if win_index is not None:
+                        win_df = pd.DataFrame(winCounts.items(), columns=['Streak', 'Count'])
+                        win_fig = px.bar(win_df, x='Count', y='Streak', orientation='h', title='Win Streak Distribution')
+                        st.plotly_chart(win_fig, use_container_width=True)
+                    st.divider()
+                    if loss_index is not None:
+                        loss_df = pd.DataFrame(lossCounts.items(), columns=['Streak', 'Count'])
+                        loss_fig = px.bar(loss_df, x='Count', y='Streak', orientation='h', title='Loss Streak Distribution', color_discrete_sequence=['red'])
+                        st.plotly_chart(loss_fig, use_container_width=True)
         else:
             with col2:
                 with stylable_container(
@@ -348,6 +352,9 @@ def lossAndProfit():
                     col22.error(f'Max Loss Streak: {max_loss_streak}' if loss_index is not None else "No Losing Streak Found")
                     col22.error(f'Trade Started At: {df_trades.iloc[loss_index]["Date/Time"]}' if loss_index is not None else 'No Losing Streak Found')
 
+                    # col23.warning(f'Win Counts: {winCounts}' if win_index is not None else 'No Winning Streak Found')
+                    # col23.warning(f'Loss Counts: {lossCounts}' if loss_index is not None else 'No Losing Streak Found')
+
                     col21.markdown('<br>', unsafe_allow_html=True)
                     show = col21.checkbox('Show Data', key=f'showData{index}')
                     if show:
@@ -361,6 +368,15 @@ def lossAndProfit():
                             use_container_width=True
                         )
                     st.divider()
+                    if win_index is not None:
+                        win_df = pd.DataFrame(winCounts.items(), columns=['Streak', 'Count'])
+                        win_fig = px.bar(win_df, x='Count', y='Streak', orientation='h', title='Win Streak Distribution')
+                        st.plotly_chart(win_fig, use_container_width=True)
+                    st.divider()
+                    if loss_index is not None:
+                        loss_df = pd.DataFrame(lossCounts.items(), columns=['Streak', 'Count'])
+                        loss_fig = px.bar(loss_df, x='Count', y='Streak', orientation='h', title='Loss Streak Distribution', color_discrete_sequence=['red'])
+                        st.plotly_chart(loss_fig, use_container_width=True)
 
 tab1, tab23 = st.tabs(['Visual Analysis', 'Balance Of Trade'])
 with tab1:
