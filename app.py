@@ -55,7 +55,7 @@ def analysis():
         # Preprocess the data upon upload and save it to df holder
         if uploaded: 
             df = pd.read_csv(uploaded)
-            cleanCol(df, 'P&L %', '%')
+            cleanCol(df, 'Net P&L %', '%')
             cleanCol(df, 'Cumulative P&L %', '%')
             cleanCol(df, 'Drawdown %', '%')
             df = clean_price_columns(df)
@@ -266,15 +266,15 @@ def lossAndProfit():
     # """Get maximum winning streaks and maximum losing streaks"""
     for index, value in enumerate(ss.upF.keys()):
         index += 1 
-        ss.upF[value]['P&L USD'] = ss.upF[value]['P&L USD'].astype(str).str.replace(',', '')
-        ss.upF[value]['P&L USD'] = pd.to_numeric(ss.upF[value]['P&L USD'], errors='coerce')
+        ss.upF[value]['Net P&L USD'] = ss.upF[value]['Net P&L USD'].astype(str).str.replace(',', '')
+        ss.upF[value]['Net P&L USD'] = pd.to_numeric(ss.upF[value]['P&L USD'], errors='coerce')
 
         # Keep only rows where there's a closing trade (typically 'Exit long' or 'Exit short')
         exit_mask = ss.upF[value]['Type'].str.contains("Exit", na=False)
         df_trades = ss.upF[value][exit_mask].copy()
 
         # Create a column for win/loss label
-        df_trades['Result'] = df_trades['P&L USD'].apply(lambda x: 'win' if x > 0 else 'loss')
+        df_trades['Result'] = df_trades['Net P&L USD'].apply(lambda x: 'win' if x > 0 else 'loss')
 
         # Calculate maximum consecutive wins and losses
         max_win_streak, win_index, winCounts = get_streaks(df_trades, 'win')
@@ -316,7 +316,7 @@ def lossAndProfit():
                         else:
                             streak_rows = df_trades.iloc[loss_index:loss_index+max_loss_streak]
                         st.dataframe(
-                            streak_rows[['Date/Time', 'Result', 'Type', 'Price USD', 'P&L USD', 'Cumulative P&L USD', 'P&L %', 'Run-up USD', 'Run-up %', 'Drawdown USD', 'Drawdown %']].reset_index(drop=True),
+                            streak_rows[['Date/Time', 'Result', 'Type', 'Price USD', 'Net P&L USD', 'Cumulative P&L USD', 'Net P&L %', 'Run-up USD', 'Run-up %', 'Drawdown USD', 'Drawdown %']].reset_index(drop=True),
                             use_container_width=True
                         )
                     st.divider()
@@ -364,7 +364,7 @@ def lossAndProfit():
                         else:
                             streak_rows = df_trades.iloc[loss_index:loss_index+max_loss_streak]
                         st.dataframe(
-                            streak_rows[['Date/Time', 'Result', 'Type', 'Price USD', 'P&L USD', 'Cumulative P&L USD', 'P&L %', 'Run-up USD', 'Run-up %', 'Drawdown USD', 'Drawdown %']].reset_index(drop=True),
+                            streak_rows[['Date/Time', 'Result', 'Type', 'Price USD', 'Net P&L USD', 'Cumulative P&L USD', 'Net P&L %', 'Run-up USD', 'Run-up %', 'Drawdown USD', 'Drawdown %']].reset_index(drop=True),
                             use_container_width=True
                         )
                     st.divider()
@@ -384,3 +384,4 @@ with tab1:
 with tab23:
     if 'upF' in ss and ss.upF:
         lossAndProfit()
+
