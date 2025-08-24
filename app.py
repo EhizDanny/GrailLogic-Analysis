@@ -42,7 +42,7 @@ def clean_price_columns(df):
 st.sidebar.image('pngwing.com.png', caption='Grail Analytics')
 # st.sidebar.markdown("<h3 style=color: #2c3e50; font-size: 24px; text-align: center>Import Data</h3>", unsafe_allow_html=True)
 st.sidebar.button('Import More Data', on_click=importer)
- 
+
 def analysis():
     uploaded_a_file = False
     if 'upF' not in ss:
@@ -176,6 +176,7 @@ def analysis():
                 aggre2 = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key='aggre')
 
                 if len(selData) >1:
+                    # st.write(selData)
                     combined = pd.DataFrame()
                     for _ , data in enumerate(selData):
                         combined = pd.concat([combined, ss.upF[data]], axis=0)
@@ -246,7 +247,7 @@ def MonthAnalysis():
                 padding-bottom: 15px;
                 margin-top: 10px
             }"""):
-        selectData, respCol, AggregData = st.columns([1,1,3], gap='large')
+        selectData, respCol,aggregation, AggregData = st.columns([1,1,1,2], gap='large')
         data = selectData.selectbox('Select Dataset', options=['Select One']+allData, key='month_data')
         if data != 'Select One':
             data = ss.upF[data]
@@ -257,27 +258,35 @@ def MonthAnalysis():
             colss.remove('Month')
 
             resp4 = respCol.selectbox('Choose The Response Column', options= colss, key='resp4', index = 7)
+            aggregate = aggregation.selectbox('Aggregate The Data', options= ['Weekly', 'Quarterly', 'Monthly'], key='aggregated', index=2)
             if resp4 == 'Select Column':
                 st.info('Please select a column to plot.')
                 return
+            groupbyType = 'Month' if aggregate == 'Monthly' else 'Quarter' if aggregate == 'Quarterly' else 'WeekNumber' if aggregate == 'Weekly' else None
+
             numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
+            data_.set_index('Date/Time', inplace=True)
+            data_['WeekNumber'] = (data_.index.isocalendar().week).astype(str)
+            data_['Quarter'] = (data_.index.quarter).astype(str)
+            data_.reset_index(inplace=True)
             data_['Year'] = pd.to_datetime(data_['Date/Time']).apply(lambda x: x.strftime('%Y'))
             data_['Month'] = data_['Date/Time'].dt.month_name()
-            data_ = data_.groupby(['Year', 'Month'])[[i for i in numeric_cols if i not in ['Year', 'Month']]].sum().reset_index()
-            # data_['Month'] = pd.Categorical(data_['Month'], categories=month_order, ordered=True)
+            data_ = data_.groupby(['Year', f'{groupbyType}'])[[i for i in numeric_cols if i not in ['Year', f'{groupbyType}']]].sum().reset_index()
 
             # ------------------------ Display Year By Month For Each Year ------------------------
             colYear1, colYear2 = st.columns([1,1], gap='large')
             years = data_['Year'].unique().tolist()
             for index, year in enumerate(years):
                 year_data = data_[data_['Year'] == year]
-                year_data['Month'] = pd.Categorical(year_data['Month'], categories=month_order, ordered=True)
-                year_data = year_data.sort_values('Month')
+                if aggregate == 'Monthly':
+                    year_data[f'{groupbyType}'] = pd.Categorical(year_data[f'{groupbyType}'], categories=month_order, ordered=True)
+                year_data = year_data.sort_values(f'{groupbyType}')
                 custom_scale = [
                     (0, '#FF3F33'),      # Start color
                     (0.5, '#77BEF0'),   # Middle color
                     (1, '#00FFDE')        # End color
                 ]
+                
                 if resp4 != 'Select Column':
                     if data_[resp4].dtype == 'O':
                         st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
@@ -286,13 +295,13 @@ def MonthAnalysis():
                             with colYear1:
                                 st.divider()
                                 st.subheader(f'Data for {year}')
-                                fig = px.bar(year_data, x='Month', y=resp4, title=f'{resp4} By Month for {year}', labels={resp4: resp4, 'Month': 'Month'}, color = resp4, color_continuous_scale=custom_scale)
+                                fig = px.bar(year_data, x=f'{groupbyType}', y=resp4, title=f'{resp4} By Month for {year}', labels={resp4: resp4, f'{groupbyType}': f'{groupbyType}'}, color = resp4, color_continuous_scale=custom_scale)
                                 st.plotly_chart(fig, theme='streamlit', use_container_width=True)
                         else:
                             with colYear2:
                                 st.divider()
                                 st.subheader(f'Data for {year}')
-                                fig = px.bar(year_data, x='Month', y=resp4, title=f'{resp4} By Month for {year}', labels={resp4: resp4, 'Month': 'Month'}, color = resp4, color_continuous_scale=custom_scale)
+                                fig = px.bar(year_data, x=f'{groupbyType}', y=resp4, title=f'{resp4} By Month for {year}', labels={resp4: resp4, f'{groupbyType}': f'{groupbyType}'}, color = resp4, color_continuous_scale=custom_scale)
                                 st.plotly_chart(fig, theme='streamlit', use_container_width=True)
 
 
@@ -301,20 +310,28 @@ def jointMonthAnalysis():
     month_order = ['January', 'February', 'March', 'April', 'May', 'June',
                'July', 'August', 'September', 'October', 'November', 'December']
     allData = [i for i in ss.upF.keys()]
-    colYear11, colYear22 = st.columns([1,1], gap='large')
-    combineData = colYear11.multiselect('Select Datasets to Compare', options=list(ss.upF.keys()), key='joint_month_data', default=list(ss.upF.keys()))
+    colYear11_, colYear22_, colYear33_ = st.columns([1,1,1], gap='large')
+    combineData = colYear11_.multiselect('Select Datasets to Compare', options=list(ss.upF.keys()), key='joint_month_data', default=list(ss.upF.keys()))
     if len(combineData) > 1:
         combined = pd.DataFrame()
         for _ , data in enumerate(combineData):
             combined = pd.concat([combined, ss.upF[data]], axis=0)
-    
-        
-        combined['Year'] = pd.to_datetime(combined['Date/Time']).apply(lambda x: x.strftime('%Y'))
-        combined['Month'] = combined['Date/Time'].dt.month_name()
-        combined = combined.groupby(['Year', 'Month'])[[i for i in combined.select_dtypes(include=[np.number]).columns if i not in ['Year', 'Month']]].sum().reset_index()
+
         numeric_cols = combined.select_dtypes(include=[np.number]).columns.tolist()
         combined['Month'] = pd.Categorical(combined['Month'], categories=month_order, ordered=True)
-        resp5 = colYear22.selectbox('Select Column', options = ['Select One'] + [i for i in combined.columns if i not in ['Year', 'Month']], key='joint_month_col', index=5)
+        resp5 = colYear22_.selectbox('Select Column', options = ['Select One'] + [i for i in combined.columns if i not in ['Year', 'Month']], key='joint_month_col', index=5)
+        aggregate2 = colYear33_.selectbox('Aggregate The Data', options= ['Weekly', 'Quarterly', 'Monthly'], key='joint_month_agg', index=0)
+        groupbyType = 'Month' if aggregate2 == 'Monthly' else 'Quarter' if aggregate2 == 'Quarterly' else 'WeekNumber' if aggregate2 == 'Weekly' else None
+
+        combined['Year'] = pd.to_datetime(combined['Date/Time']).apply(lambda x: x.strftime('%Y'))
+        combined['Month'] = combined['Date/Time'].dt.month_name()
+        combined.set_index('Date/Time', inplace=True)
+        combined['WeekNumber'] = pd.to_datetime(combined.index).isocalendar().week.astype(str)
+        combined['Quarter'] = pd.to_datetime(combined.index).quarter.astype(str)
+        combined = combined.groupby(['Year', f'{groupbyType}'])[[i for i in combined.select_dtypes(include=[np.number]).columns if i not in ['Year', f'{groupbyType}']]].sum().reset_index()
+
+        # ------------------------ Display Year By Month For Each Year ------------------------
+        colYear11, colYear22 = st.columns([1,1], gap='large')
         if resp5 != 'Select One':
             if combined[resp5].dtype == 'O':
                 st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
@@ -328,19 +345,20 @@ def jointMonthAnalysis():
                 years = combined['Year'].unique().tolist()
                 for index, year in enumerate(years):
                     year_data = combined[combined['Year'] == year]
-                    year_data['Month'] = pd.Categorical(year_data['Month'], categories=month_order, ordered=True)
-                    year_data = year_data.sort_values('Month')
+                    if aggregate2 == 'Monthly':
+                        year_data['Month'] = pd.Categorical(year_data['Month'], categories=month_order, ordered=True)
+                    year_data = year_data.sort_values(f'{groupbyType}')
                     if index % 2 == 0:
                         with colYear11:
                             st.divider()
                             st.subheader(f'Combined Data for {year}')
-                            fig = px.bar(year_data, x='Month', y=resp5, labels={resp5: resp5, 'Month': 'Month'}, color = resp5, color_continuous_scale=custom_scale, text=resp5)
+                            fig = px.bar(year_data, x=f'{groupbyType}', y=resp5, labels={resp5: resp5, f'{groupbyType}': f'{groupbyType}'}, color = resp5, color_continuous_scale=custom_scale, text=resp5)
                             st.plotly_chart(fig, theme='streamlit', use_container_width=True)
                     else:
                         with colYear22:
                             st.divider()
                             st.subheader(f'Combined Data for {year}')
-                            fig = px.bar(year_data, x='Month', y=resp5, labels={resp5: resp5, 'Month': 'Month'}, color = resp5, color_continuous_scale=custom_scale, text=resp5)
+                            fig = px.bar(year_data, x=f'{groupbyType}', y=resp5, labels={resp5: resp5, f'{groupbyType}': f'{groupbyType}'}, color = resp5, color_continuous_scale=custom_scale, text=resp5)
                             st.plotly_chart(fig, theme='streamlit', use_container_width=True)
     # del combineData,
             
@@ -360,45 +378,54 @@ def yearByYear():
     for index, value in enumerate(ss.upF.keys()):
         combineData = pd.concat([combineData, ss.upF[value]], axis=0)
     combineData['Year'] = pd.to_datetime(combineData['Date/Time']).apply(lambda x: x.strftime('%Y'))
-    combineData['Month'] = combineData['Date/Time'].dt.month_name()
+    combineData['Month'] = combineData['Date/Time'].dt.month_name() 
     combineData = combineData[combineData['Type'].str.contains('Entry')]
     combineData['Month'] = pd.Categorical(combineData['Month'], categories=month_order, ordered=True)
     combineData = combineData.sort_values(['Year', 'Month'])
     usage = combineData[['Year', 'Month']]
     transaction_count = combineData.groupby(['Year', 'Month'])[['Trade #']].count().reset_index().rename(columns={'Trade #': 'Transaction Count'})
 
-    a, b, c, d = st.columns([1,2,2.5, 1])
-    analysisType = a.selectbox('Select Analysis Type', options=['Single View Analysis', 'Multi View Analysis'], key='analysis_type')
-    if analysisType == 'Single View Analysis':
-        filterYear = b.selectbox('Select Year', options=combineData['Year'].unique().tolist(), key='year_by_year', index=len(combineData['Year'].unique().tolist())-1)
+    e, a, b, c, d = st.columns([2,1,2,2.5,1])
+    analysisType = e.selectbox('Select Analysis Type', options=['Single View Analysis', 'Multi View Analysis'], key='analysis_type')
+    data = a.selectbox('Select Dataset', options=[i for i in ss.upF.keys()], key='year_data', disabled=True if analysisType != 'Single View Analysis' else False)
+
+    filteredData = ss.upF[data]
+
+    if analysisType == 'Single View Analysis':  
+        filterYear = b.selectbox('Select Year', options=filteredData['Year'].unique().tolist(), key='year_by_year')
     else:
         filterYear = b.multiselect('Select Years', options=['All Year'] + combineData['Year'].unique().tolist(), key='year_by_year', default=['All Year'])
-    filterMonth = c.multiselect('Select Month', options=['All Months'] + month_order, key='month_by_month', default=['All Months'])
+
+    filterMonth = c.multiselect('Select Month', options=['All Months'] + month_order, key='month_by_month', default=['All Months']) 
     filterType = d.selectbox('Select Visual Type', options=['Chart', 'Table'], key='visual_type', disabled=True if analysisType != 'Multi View Analysis' else False)
 
     if analysisType == 'Single View Analysis':
-        if filterYear != 'All Year':
-            if 'All Months' not in filterMonth:
-                transData = transaction_count.copy()
-                transData = transaction_count[(transaction_count['Year'] == filterYear) & (transaction_count['Month'].isin(filterMonth))]
-                total = transData['Transaction Count'].sum()
-            else:
-                transData = transaction_count[transaction_count['Year'] == filterYear]
-                total = transData['Transaction Count'].sum()
-            col1, col2 = st.columns([1,1], gap='large')
-            with col1:
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.subheader('Transaction Count Chart View')
-                fig = px.bar(transData, x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
-                st.plotly_chart(fig, theme='streamlit', use_container_width=True)  
-            with col2:
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.subheader('Transaction Count Table View')
-                st.dataframe(transData, use_container_width=True)
-                st.info(f'Total Transactions for {filterYear} in the selected months is {total}')
+        # ------ set up the data for single analysis ------
+        filteredData['Year'] = pd.to_datetime(filteredData['Date/Time']).apply(lambda x: x.strftime('%Y'))
+        filteredData['Month'] = filteredData['Date/Time'].dt.month_name()
+        filteredData = filteredData[filteredData['Type'].str.contains('Entry')]
+        filteredData['Month'] = pd.Categorical(filteredData['Month'], categories=month_order, ordered=True)
+        filteredData = filteredData.sort_values(['Year', 'Month'])
+        transaction_count_single = filteredData.groupby(['Year', 'Month'])[['Trade #']].count().reset_index().rename(columns={'Trade #': 'Transaction Count'})
+        # ------ end of setting up data for single analysis ------
+        if 'All Months' not in filterMonth:
+            transData = transaction_count_single.copy()
+            transData = transaction_count[(transaction_count['Year'] == str(filterYear)) & (transaction_count['Month'].isin(filterMonth))]
+            total = transData['Transaction Count'].sum()
         else:
-            a.info('Please select a specific year for Single Year Analysis.')
-            return
+            transData = transaction_count_single[transaction_count_single['Year'] == str(filterYear)]
+            total = transaction_count_single['Transaction Count'].sum()
+        col1, col2 = st.columns([1,1], gap='large')
+        with col1:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.subheader('Transaction Count Chart View')
+            fig = px.bar(transData, x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+            st.plotly_chart(fig, theme='streamlit', use_container_width=True)  
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.subheader('Transaction Count Table View')
+            st.dataframe(transData, use_container_width=True)
+            st.info(f'Total Transactions for {filterYear} in the selected months is {total}')
     
     else:
         if 'All Year' in filterYear:
@@ -710,6 +737,3 @@ with tab25:
 st.markdown('<br><br>', unsafe_allow_html=True)
 if st.button('Manual Rerun'):
     st.rerun()
-
-
-
