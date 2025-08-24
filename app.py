@@ -176,7 +176,7 @@ def analysis():
                 aggre2 = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key='aggre')
 
                 if len(selData) >1:
-                     combined = pd.DataFrame()
+                    combined = pd.DataFrame()
                     for _ , data in enumerate(selData):
                         combined = pd.concat([combined, ss.upF[data]], axis=0)
 
@@ -710,4 +710,5 @@ with tab25:
 st.markdown('<br><br>', unsafe_allow_html=True)
 if st.button('Manual Rerun'):
     st.rerun()
+
 
