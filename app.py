@@ -626,7 +626,7 @@ def lossAndProfit():
                         else:
                             streak_rows = df_trades.iloc[loss_index:loss_index+max_loss_streak]
                         st.dataframe(
-                            streak_rows[['Date/Time', 'Result', 'Type', 'Price USD', 'Net P&L USD', 'Cumulative P&L USD', 'Net P&L %', 'Run-up USD', 'Run-up %', 'Drawdown USD', 'Drawdown %']].reset_index(drop=True),
+                            streak_rows[['Date/Time', 'Result', 'Type', 'Net P&L USD', 'Cumulative P&L USD', 'Net P&L %', 'Run-up USD', 'Run-up %', 'Drawdown USD', 'Drawdown %']].reset_index(drop=True),
                             use_container_width=True
                         )
                     st.divider()
@@ -710,5 +710,6 @@ with tab25:
 st.markdown('<br><br>', unsafe_allow_html=True)
 if st.button('Manual Rerun'):
     st.rerun()
+
 
 
