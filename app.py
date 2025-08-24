@@ -268,6 +268,9 @@ def MonthAnalysis():
             data_.set_index('Date/Time', inplace=True)
             data_['WeekNumber'] = (data_.index.isocalendar().week).astype(str)
             data_['Quarter'] = (data_.index.quarter).astype(str)
+            quarter_map = {'1': '1st Quarter', '2': '2nd Quarter', '3': '3rd Quarter', '4': '4th Quarter'}
+            if groupbyType == 'Quarter':
+                data_['Quarter'] = data_['Quarter'].map(quarter_map)
             data_.reset_index(inplace=True)
             data_['Year'] = pd.to_datetime(data_['Date/Time']).apply(lambda x: x.strftime('%Y'))
             data_['Month'] = data_['Date/Time'].dt.month_name()
@@ -328,6 +331,9 @@ def jointMonthAnalysis():
         combined.set_index('Date/Time', inplace=True)
         combined['WeekNumber'] = pd.to_datetime(combined.index).isocalendar().week.astype(str)
         combined['Quarter'] = pd.to_datetime(combined.index).quarter.astype(str)
+        quarter_map = {'1': '1st Quarter', '2': '2nd Quarter', '3': '3rd Quarter', '4': '4th Quarter'}
+        if groupbyType == 'Quarter':
+            combined['Quarter'] = combined['Quarter'].map(quarter_map)
         combined = combined.groupby(['Year', f'{groupbyType}'])[[i for i in combined.select_dtypes(include=[np.number]).columns if i not in ['Year', f'{groupbyType}']]].sum().reset_index()
 
         # ------------------------ Display Year By Month For Each Year ------------------------
