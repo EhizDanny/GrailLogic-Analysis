@@ -176,11 +176,9 @@ def analysis():
                 aggre2 = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key='aggre')
 
                 if len(selData) >1:
-                    # st.write(selData)
-                    combined = pd.DataFrame()
-                    for _ , data in ss.upF.items():
-                        # st.write(data.shape)
-                        combined = pd.concat([combined, data], axis=0)
+                     combined = pd.DataFrame()
+                    for _ , data in enumerate(selData):
+                        combined = pd.concat([combined, ss.upF[data]], axis=0)
 
                     # combined = pd.concat([ss.upF[i] for i in selData], axis=0).reset_index(drop=True)
                     # combined.dropna(inplace=True)
@@ -712,3 +710,4 @@ with tab25:
 st.markdown('<br><br>', unsafe_allow_html=True)
 if st.button('Manual Rerun'):
     st.rerun()
+
