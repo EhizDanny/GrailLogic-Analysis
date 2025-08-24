@@ -42,7 +42,7 @@ def clean_price_columns(df):
 st.sidebar.image('pngwing.com.png', caption='Grail Analytics')
 # st.sidebar.markdown("<h3 style=color: #2c3e50; font-size: 24px; text-align: center>Import Data</h3>", unsafe_allow_html=True)
 st.sidebar.button('Import More Data', on_click=importer)
-
+ 
 def analysis():
     uploaded_a_file = False
     if 'upF' not in ss:
@@ -55,9 +55,9 @@ def analysis():
         # Preprocess the data upon upload and save it to df holder
         if uploaded: 
             df = pd.read_csv(uploaded)
-            cleanCol(df, 'Net P&L %', '%')
-            cleanCol(df, 'Cumulative P&L %', '%')
-            cleanCol(df, 'Drawdown %', '%')
+            # cleanCol(df, 'Net P&L %', '%')
+            # cleanCol(df, 'Cumulative P&L %', '%')
+            # cleanCol(df, 'Drawdown %', '%')
             df = clean_price_columns(df)
             df['Date/Time'] = pd.to_datetime(df['Date/Time'])
             df['Year'] = df['Date/Time'].dt.year
@@ -93,18 +93,18 @@ def analysis():
                         colss.remove('Year')
                         colss.remove('Month')
                         resp = st.selectbox('Choose The Response Column', options= colss, key=f'{index}_resp')
-                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly',  'Monthly', 'Quarterly', 'Yearly'], key=f'{index}_aggre')
-                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Q' if aggre== 'Quarterly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
+                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly',  'Monthly', 'Yearly'], key=f'{index}_aggre')
+                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly'else None
                         data_.set_index('Date/Time', inplace=True)
                         data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
                         if resp != 'Select Column':
-                            if data_[resp].dtype == 'O':
-                                st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
-                            else:
-                                data_[resp] = data_[resp].astype(float)
-                                fig = px.line(data_frame = data_, x = data_.index, y = resp, title=f'{resp} By Time')
-                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                           if data_[resp].dtype == 'O':
+                               st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
+                           else:
+                               data_[resp] = data_[resp].astype(float)
+                               fig = px.line(data_frame = data_, x = data_.index, y = resp, title=f'{resp} By Time')
+                               st.plotly_chart(fig, theme='streamlit', use_container_width=True)
                     
             else:
                 with col2:
@@ -131,8 +131,8 @@ def analysis():
                         colss.remove('Year')
                         colss.remove('Month')
                         resp = st.selectbox('Choose The Response Column', options= colss, key=f'{index}_resp')
-                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly'], key=f'{index}_aggre')
-                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Q' if aggre== 'Quarterly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
+                        aggre = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key=f'{index}_aggre')
+                        aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
                         data_.set_index('Date/Time', inplace=True)
                         data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
@@ -171,13 +171,19 @@ def analysis():
                 colu.remove('Date/Time')
                 colu.remove('Year')
                 colu.remove('Month')
+
                 resp2 = st.selectbox('Select Column', options = colu, key='j1')
-                aggre2 = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Quarterly',  'Yearly'], key='aggre')
+                aggre2 = st.selectbox('Aggregate The Data', options= ['Daily', 'Weekly', 'Monthly', 'Yearly'], key='aggre')
 
                 if len(selData) >1:
                     # st.write(selData)
-                    combined = pd.concat([ss.upF[i] for i in selData], axis=0).reset_index(drop=True)
-                    combined.dropna(inplace=True)
+                    combined = pd.DataFrame()
+                    for _ , data in ss.upF.items():
+                        # st.write(data.shape)
+                        combined = pd.concat([combined, data], axis=0)
+
+                    # combined = pd.concat([ss.upF[i] for i in selData], axis=0).reset_index(drop=True)
+                    # combined.dropna(inplace=True)
 
                     if resp2 != 'Select One':
                         if combined[resp2].dtype == 'O':
@@ -187,7 +193,7 @@ def analysis():
                             combined = combined[['Date/Time', resp2]]
                             combined['Date/Time'] = pd.to_datetime(combined['Date/Time'])
                             combined.set_index('Date/Time', inplace=True)
-                            aggregation = 'D' if aggre2 == 'Daily' else 'M' if aggre2 == 'Monthly' else 'Q' if aggre2== 'Quarterly' else 'Y'  if aggre2 == 'Yearly' else 'W' if aggre2 == 'Weekly' else None
+                            aggregation = 'D' if aggre2 == 'Daily' else 'M' if aggre2 == 'Monthly' else 'Y'  if aggre2 == 'Yearly' else 'W' if aggre2 == 'Weekly' else None
                             combined = combined.resample(aggregation).sum()
                             figss = px.line(combined, x=combined.index, y=resp2, title=f'Joint {resp2} For Selected Datasets')
                     else:
@@ -196,6 +202,8 @@ def analysis():
                 else:
                     figss = None
                     st.info('Please select more than one dataset to compare.')
+
+
 
         j11, j22,j33 = st.columns([1,8,1], gap='large')       
         if figss:
@@ -222,6 +230,310 @@ def analysis():
         if 'view_data' in st.session_state and st.session_state['view_data'] != 'Select One':
             data_to_view = ss.upF[st.session_state['view_data']]
             st.dataframe(data_to_view)
+
+
+@st.fragment
+def MonthAnalysis():
+    month_order = ['January', 'February', 'March', 'April', 'May', 'June',
+               'July', 'August', 'September', 'October', 'November', 'December']
+    allData = [i for i in ss.upF.keys()]
+    with stylable_container(
+        key=f"container_with_borders20",
+        css_styles="""{
+                # background: #7474A3;
+                box-shadow:rgba(20, 20, 20, 0.8) 0px 5px 15px 0px;
+                border-radius: 0.3rem;
+                padding-left: 15px;
+                padding-right: 15px;
+                padding-bottom: 15px;
+                margin-top: 10px
+            }"""):
+        selectData, respCol, AggregData = st.columns([1,1,3], gap='large')
+        data = selectData.selectbox('Select Dataset', options=['Select One']+allData, key='month_data')
+        if data != 'Select One':
+            data = ss.upF[data]
+            data_ = data.copy()
+            colss =['Select Column']+data_.columns.tolist()
+            colss.remove('Date/Time')
+            colss.remove('Year')
+            colss.remove('Month')
+
+            resp4 = respCol.selectbox('Choose The Response Column', options= colss, key='resp4', index = 7)
+            if resp4 == 'Select Column':
+                st.info('Please select a column to plot.')
+                return
+            numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
+            data_['Year'] = pd.to_datetime(data_['Date/Time']).apply(lambda x: x.strftime('%Y'))
+            data_['Month'] = data_['Date/Time'].dt.month_name()
+            data_ = data_.groupby(['Year', 'Month'])[[i for i in numeric_cols if i not in ['Year', 'Month']]].sum().reset_index()
+            # data_['Month'] = pd.Categorical(data_['Month'], categories=month_order, ordered=True)
+
+            # ------------------------ Display Year By Month For Each Year ------------------------
+            colYear1, colYear2 = st.columns([1,1], gap='large')
+            years = data_['Year'].unique().tolist()
+            for index, year in enumerate(years):
+                year_data = data_[data_['Year'] == year]
+                year_data['Month'] = pd.Categorical(year_data['Month'], categories=month_order, ordered=True)
+                year_data = year_data.sort_values('Month')
+                custom_scale = [
+                    (0, '#FF3F33'),      # Start color
+                    (0.5, '#77BEF0'),   # Middle color
+                    (1, '#00FFDE')        # End color
+                ]
+                if resp4 != 'Select Column':
+                    if data_[resp4].dtype == 'O':
+                        st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
+                    else:
+                        if index % 2 == 0:
+                            with colYear1:
+                                st.divider()
+                                st.subheader(f'Data for {year}')
+                                fig = px.bar(year_data, x='Month', y=resp4, title=f'{resp4} By Month for {year}', labels={resp4: resp4, 'Month': 'Month'}, color = resp4, color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                        else:
+                            with colYear2:
+                                st.divider()
+                                st.subheader(f'Data for {year}')
+                                fig = px.bar(year_data, x='Month', y=resp4, title=f'{resp4} By Month for {year}', labels={resp4: resp4, 'Month': 'Month'}, color = resp4, color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+
+
+@st.fragment
+def jointMonthAnalysis():
+    month_order = ['January', 'February', 'March', 'April', 'May', 'June',
+               'July', 'August', 'September', 'October', 'November', 'December']
+    allData = [i for i in ss.upF.keys()]
+    colYear11, colYear22 = st.columns([1,1], gap='large')
+    combineData = colYear11.multiselect('Select Datasets to Compare', options=list(ss.upF.keys()), key='joint_month_data', default=list(ss.upF.keys()))
+    if len(combineData) > 1:
+        combined = pd.DataFrame()
+        for _ , data in enumerate(combineData):
+            combined = pd.concat([combined, ss.upF[data]], axis=0)
+    
+        
+        combined['Year'] = pd.to_datetime(combined['Date/Time']).apply(lambda x: x.strftime('%Y'))
+        combined['Month'] = combined['Date/Time'].dt.month_name()
+        combined = combined.groupby(['Year', 'Month'])[[i for i in combined.select_dtypes(include=[np.number]).columns if i not in ['Year', 'Month']]].sum().reset_index()
+        numeric_cols = combined.select_dtypes(include=[np.number]).columns.tolist()
+        combined['Month'] = pd.Categorical(combined['Month'], categories=month_order, ordered=True)
+        resp5 = colYear22.selectbox('Select Column', options = ['Select One'] + [i for i in combined.columns if i not in ['Year', 'Month']], key='joint_month_col', index=5)
+        if resp5 != 'Select One':
+            if combined[resp5].dtype == 'O':
+                st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
+                figss = None
+            else:
+                custom_scale = [
+                    (0, '#FF3F33'),      # Start color
+                    (0.5, '#77BEF0'),   # Middle color
+                    (1, '#00FFDE')        # End color
+                ]
+                years = combined['Year'].unique().tolist()
+                for index, year in enumerate(years):
+                    year_data = combined[combined['Year'] == year]
+                    year_data['Month'] = pd.Categorical(year_data['Month'], categories=month_order, ordered=True)
+                    year_data = year_data.sort_values('Month')
+                    if index % 2 == 0:
+                        with colYear11:
+                            st.divider()
+                            st.subheader(f'Combined Data for {year}')
+                            fig = px.bar(year_data, x='Month', y=resp5, labels={resp5: resp5, 'Month': 'Month'}, color = resp5, color_continuous_scale=custom_scale, text=resp5)
+                            st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                    else:
+                        with colYear22:
+                            st.divider()
+                            st.subheader(f'Combined Data for {year}')
+                            fig = px.bar(year_data, x='Month', y=resp5, labels={resp5: resp5, 'Month': 'Month'}, color = resp5, color_continuous_scale=custom_scale, text=resp5)
+                            st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+    # del combineData,
+            
+
+
+@st.fragment
+def yearByYear():
+    month_order = ['January', 'February', 'March', 'April', 'May', 'June',
+               'July', 'August', 'September', 'October', 'November', 'December']
+    custom_scale = [
+                    (0, '#FF3F33'),      # Start color
+                    (0.5, '#77BEF0'),   # Middle color
+                    (1, '#00FFDE')        # End color
+                ]
+    # col1, col2 = st.columns([1,1], gap='large')
+    combineData = pd.DataFrame()
+    for index, value in enumerate(ss.upF.keys()):
+        combineData = pd.concat([combineData, ss.upF[value]], axis=0)
+    combineData['Year'] = pd.to_datetime(combineData['Date/Time']).apply(lambda x: x.strftime('%Y'))
+    combineData['Month'] = combineData['Date/Time'].dt.month_name()
+    combineData = combineData[combineData['Type'].str.contains('Entry')]
+    combineData['Month'] = pd.Categorical(combineData['Month'], categories=month_order, ordered=True)
+    combineData = combineData.sort_values(['Year', 'Month'])
+    usage = combineData[['Year', 'Month']]
+    transaction_count = combineData.groupby(['Year', 'Month'])[['Trade #']].count().reset_index().rename(columns={'Trade #': 'Transaction Count'})
+
+    a, b, c, d = st.columns([1,2,2.5, 1])
+    analysisType = a.selectbox('Select Analysis Type', options=['Single View Analysis', 'Multi View Analysis'], key='analysis_type')
+    if analysisType == 'Single View Analysis':
+        filterYear = b.selectbox('Select Year', options=combineData['Year'].unique().tolist(), key='year_by_year', index=len(combineData['Year'].unique().tolist())-1)
+    else:
+        filterYear = b.multiselect('Select Years', options=['All Year'] + combineData['Year'].unique().tolist(), key='year_by_year', default=['All Year'])
+    filterMonth = c.multiselect('Select Month', options=['All Months'] + month_order, key='month_by_month', default=['All Months'])
+    filterType = d.selectbox('Select Visual Type', options=['Chart', 'Table'], key='visual_type', disabled=True if analysisType != 'Multi View Analysis' else False)
+
+    if analysisType == 'Single View Analysis':
+        if filterYear != 'All Year':
+            if 'All Months' not in filterMonth:
+                transData = transaction_count.copy()
+                transData = transaction_count[(transaction_count['Year'] == filterYear) & (transaction_count['Month'].isin(filterMonth))]
+                total = transData['Transaction Count'].sum()
+            else:
+                transData = transaction_count[transaction_count['Year'] == filterYear]
+                total = transData['Transaction Count'].sum()
+            col1, col2 = st.columns([1,1], gap='large')
+            with col1:
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.subheader('Transaction Count Chart View')
+                fig = px.bar(transData, x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                st.plotly_chart(fig, theme='streamlit', use_container_width=True)  
+            with col2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.subheader('Transaction Count Table View')
+                st.dataframe(transData, use_container_width=True)
+                st.info(f'Total Transactions for {filterYear} in the selected months is {total}')
+        else:
+            a.info('Please select a specific year for Single Year Analysis.')
+            return
+    
+    else:
+        if 'All Year' in filterYear:
+            if 'All Months' in filterMonth:
+                transData = transaction_count.copy()
+                uniqueYears = transData['Year'].unique().tolist()
+
+                one, two = st.columns([1,1], gap='large')
+                for index, year in enumerate(uniqueYears):
+                    if index % 2 == 0:
+                        with one:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='Blues'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                    else:
+                        with two:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='Blues'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                st.warning(f'Total Transactions for all years is {transData["Transaction Count"].sum()}')
+
+            else:
+                transData = transaction_count[transaction_count['Month'].isin(filterMonth)]
+                uniqueYears = transData['Year'].unique().tolist()
+                one, two = st.columns([1,1], gap='large')
+                for index, year in enumerate(uniqueYears):
+                    if index % 2 == 0:
+                        with one:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='viridis'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                    else:
+                        with two:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='Blues'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                st.warning(f'Total Transactions for all years is {transData["Transaction Count"].sum()}')
+
+        else:
+            if 'All Months' in filterMonth:
+                transData = transaction_count[transaction_count['Year'].isin(filterYear)]
+                uniqueYears = transData['Year'].unique().tolist()
+                one, two = st.columns([1,1], gap='large')
+                for index, year in enumerate(uniqueYears):
+                    if index % 2 == 0:
+                        with one:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='Blues'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                    else:
+                        with two:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='Blues'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                st.error(f'Total Transactions for all years is {transData["Transaction Count"].sum()}')
+            
+            else:
+                transData = transaction_count[(transaction_count['Year'].isin(filterYear)) & (transaction_count['Month'].isin(filterMonth))]
+                uniqueYears = transData['Year'].unique().tolist()
+                one, two = st.columns([1,1], gap='large')
+                for index, year in enumerate(uniqueYears):
+                    if index % 2 == 0:
+                        with one:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='Blues'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                    else:
+                        with two:
+                            st.divider()
+                            if filterType == 'Chart':
+                                st.subheader(f'Transaction Count for {year}')
+                                fig = px.bar(transData[transData['Year'] == year], x='Month', y='Transaction Count', text='Transaction Count', color='Transaction Count', color_continuous_scale=custom_scale)
+                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                            else:
+                                st.subheader(f'Transaction Count for {year}')
+                                st.dataframe(transData[transData['Year'] == year].style.background_gradient(cmap='Blues'), use_container_width=True)
+                                st.info(f'Total Transactions for {year} is {transData[transData["Year"] == year]["Transaction Count"].sum()}')
+                st.error(f'Total Transactions for all years is {transData["Transaction Count"].sum()}')
+
+
+
+# ----------------------------------------------------------------------------------------------------
+
 
 # Function to calculate max consecutive wins or losses
 def max_consecutive(series, value):
@@ -267,7 +579,7 @@ def lossAndProfit():
     for index, value in enumerate(ss.upF.keys()):
         index += 1 
         ss.upF[value]['Net P&L USD'] = ss.upF[value]['Net P&L USD'].astype(str).str.replace(',', '')
-        ss.upF[value]['Net P&L USD'] = pd.to_numeric(ss.upF[value]['P&L USD'], errors='coerce')
+        ss.upF[value]['Net P&L USD'] = pd.to_numeric(ss.upF[value]['Net P&L USD'], errors='coerce')
 
         # Keep only rows where there's a closing trade (typically 'Exit long' or 'Exit short')
         exit_mask = ss.upF[value]['Type'].str.contains("Exit", na=False)
@@ -378,10 +690,25 @@ def lossAndProfit():
                         loss_fig = px.bar(loss_df, x='Count', y='Streak', orientation='h', title='Loss Streak Distribution', color_discrete_sequence=['red'])
                         st.plotly_chart(loss_fig, use_container_width=True)
 
-tab1, tab23 = st.tabs(['Visual Analysis', 'Balance Of Trade'])
+
+
+tab1, tab23, tab24, tab25 = st.tabs(['Visual Analysis', 'Balance Of Trade', 'Month By Year Analysis', 'Transaction Count Analysis'])
 with tab1:
     analysis()
 with tab23:
     if 'upF' in ss and ss.upF:
         lossAndProfit()
-
+with tab24:
+    if 'upF' in ss and ss.upF:
+        # MonthAnalysis()
+        tab11, tab22 = st.tabs(['Single Data Analysis', 'Multiple Data Analysis'])
+        with tab11:
+            MonthAnalysis()
+        with tab22:
+            jointMonthAnalysis()
+with tab25:
+    if 'upF' in ss and ss.upF:
+            yearByYear()
+st.markdown('<br><br>', unsafe_allow_html=True)
+if st.button('Manual Rerun'):
+    st.rerun()
