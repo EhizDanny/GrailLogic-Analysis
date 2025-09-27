@@ -825,8 +825,8 @@ def profitAndLossTime():
         depth2 = b3.selectbox('Select Analysis Depth', options=['Joint', 'Split By Year'], key='depth2', index=0)
     if data1 == 'Select One' and data2 == 'Select One':
         return
-    data1 = ss.upF[data1] if data1 != 'Select One' else pd.DataFrame()
-    data2 = ss.upF[data2] if data2 != 'Select One' else pd.DataFrame()
+    data1 = ss.upF[data1].copy() if data1 != 'Select One' else pd.DataFrame()
+    data2 = ss.upF[data2].copy() if data2 != 'Select One' else pd.DataFrame()
 
     month_order = ['January', 'February', 'March', 'April', 'May', 'June',
                'July', 'August', 'September', 'October', 'November', 'December']
@@ -836,7 +836,7 @@ def profitAndLossTime():
                     (1, '#00FFDE')        # End color
                 ]
     
-    def timeByProfitLoss(data1, analType, deps, year_, month_, day_, visual):
+    def timeByProfitLoss(data1, analType, deps, year_, month_, day_, visual, index):
         data1['Year'] = pd.to_datetime(data1['Date/Time']).apply(lambda x: x.strftime('%Y'))
         data1['Hour'] = pd.to_datetime(data1['Date/Time']).dt.hour
         data1['Month'] = data1['Date/Time'].dt.month_name()
@@ -880,10 +880,10 @@ def profitAndLossTime():
                     st.subheader(f'Profit And Loss By Hour ')
                     fig = px.bar(pl_data1, x='Hour', y='Net P&L USD', text='Net P&L USD', color='Net P&L USD', color_continuous_scale=custom_scale)
                     fig.update_coloraxes(showscale=False)
-                    st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                    st.plotly_chart(fig, theme='streamlit', use_container_width=True, key=f'pl_time_chart_{index}')
                 else:
                     st.subheader(f'Profit And Loss By Hour ')
-                    st.dataframe(pl_data1.sort_values(by="Net P&L USD", ascending=False).style.background_gradient(cmap='Blues'), use_container_width=True)
+                    st.dataframe(pl_data1.sort_values(by="Net P&L USD", ascending=False).style.background_gradient(cmap='Blues'), use_container_width=True, key=f'pl_time_table_{index}')
             else:
                 pl_data1 = data1.groupby(['Year', 'Hour'])[['Net P&L USD']].sum().reset_index()
                 years = pl_data1['Year'].unique().tolist()
@@ -893,10 +893,10 @@ def profitAndLossTime():
                         st.subheader(f'Profit And Loss By Hour for {year}')
                         fig = px.bar(yearly_data, x='Hour', y='Net P&L USD', text='Net P&L USD', color='Net P&L USD', color_continuous_scale=custom_scale)
                         fig.update_coloraxes(showscale=False)
-                        st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                        st.plotly_chart(fig, theme='streamlit', use_container_width=True, key=f'pl_time_chart_{index}_{year}')
                     else:
                         st.subheader(f'Profit And Loss By Hour for {year}')
-                        st.dataframe(yearly_data.style.background_gradient(cmap='Blues'), use_container_width=True)
+                        st.dataframe(yearly_data.style.background_gradient(cmap='Blues'), use_container_width=True, key=f'pl_time_table_{index}_{year}')
  
         elif analType == 'Day Of Month By Profit or Loss':
             if deps == 'Joint':
@@ -906,10 +906,10 @@ def profitAndLossTime():
                     st.subheader(f'Profit And Loss By Day of Month')
                     fig = px.bar(pl_data1, x='Day', y='Net P&L USD', text='Net P&L USD', color='Net P&L USD', color_continuous_scale=custom_scale)
                     fig.update_coloraxes(showscale=False)
-                    st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                    st.plotly_chart(fig, theme='streamlit', use_container_width=True, key=f'pl_time_chart_{index}')
                 else:
                     st.subheader(f'Profit And Loss By Day of Month')
-                    st.dataframe(pl_data1.sort_values(by="Net P&L USD", ascending=False).style.background_gradient(cmap='Blues'), use_container_width=True)
+                    st.dataframe(pl_data1.sort_values(by="Net P&L USD", ascending=False).style.background_gradient(cmap='Blues'), use_container_width=True, key=f'pl_time_table_{index}')
             else:
                 data1['Day'] = data1['Date/Time'].dt.day
                 pl_data1 = data1.groupby(['Year', 'Day'])[['Net P&L USD']].sum().reset_index()
@@ -920,10 +920,10 @@ def profitAndLossTime():
                         st.subheader(f'Profit And Loss By Day of Month for {year}')
                         fig = px.bar(yearly_data, x='Day', y='Net P&L USD', text='Net P&L USD', color='Net P&L USD', color_continuous_scale=custom_scale)
                         fig.update_coloraxes(showscale=False)
-                        st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                        st.plotly_chart(fig, theme='streamlit', use_container_width=True, key=f'pl_time_chart_{index}_{year}')
                     else:
                         st.subheader(f'Profit And Loss By Day of Month for {year}')
-                        st.dataframe(yearly_data.style.background_gradient(cmap='Blues'), use_container_width=True)
+                        st.dataframe(yearly_data.style.background_gradient(cmap='Blues'), use_container_width=True, key=f'pl_time_table_{index}_{year}')
         
         elif analType == 'Month Of Year By Profit or Loss':
             if deps == 'Joint':
@@ -934,10 +934,10 @@ def profitAndLossTime():
                     st.subheader(f'Profit And Loss By Month of Year')
                     fig = px.bar(pl_data1, x='Month', y='Net P&L USD', text='Net P&L USD', color='Net P&L USD', color_continuous_scale=custom_scale)
                     fig.update_coloraxes(showscale=False)
-                    st.plotly_chart(fig, theme='streamlit', use_container_width=True)
+                    st.plotly_chart(fig, theme='streamlit', use_container_width=True, key=f'pl_time_chart_{index}')
                 else:
                     st.subheader(f'Profit And Loss By Month of Year')
-                    st.dataframe(pl_data1.sort_values(by="Net P&L USD", ascending=False).style.background_gradient(cmap='Blues'), use_container_width=True)
+                    st.dataframe(pl_data1.sort_values(by="Net P&L USD", ascending=False).style.background_gradient(cmap='Blues'), use_container_width=True, key=f'pl_time_table_{index}')
             else:
                 pl_data1 = data1.groupby(['Year', 'Month'])[['Net P&L USD']].sum().reset_index()
                 pl_data1['Month'] = pd.Categorical(pl_data1['Month'], categories=month_order, ordered=True)
@@ -962,7 +962,7 @@ def profitAndLossTime():
             c2.multiselect('Select Month', options=['All Months'] + month_order, key=f'pl_time_month1', default=['All Months'])
             c3.multiselect('Select Day', options=['All Days'] + [str(i) for i in range(1,32)], key=f'pl_time_day1', default=['All Days'])
             c4.selectbox('Select Visual Type', options=['Chart', 'Table'], key=f'pl_time_visual1', index=0)
-            timeByProfitLoss(data1,analysisType, depth1, ss.pl_time_year1, ss.pl_time_month1, ss.pl_time_day1, ss.pl_time_visual1)
+            timeByProfitLoss(data1,analysisType, depth1, ss.pl_time_year1, ss.pl_time_month1, ss.pl_time_day1, ss.pl_time_visual1, 1)
     with col2:
         if not data2.empty:
             c10, c20 = col2.columns([1,1], gap='medium')
@@ -971,7 +971,7 @@ def profitAndLossTime():
             c20.multiselect('Select Month', options=['All Months'] + month_order, key=f'pl_time_month2', default=['All Months'])
             c30.multiselect('Select Day', options=['All Days'] + [str(i) for i in range(1,32)], key=f'pl_time_day2', default=['All Days'])
             c40.selectbox('Select Visual Type', options=['Chart', 'Table'], key=f'pl_time_visual2', index=0)
-            timeByProfitLoss(data2, analysisType2, depth2, ss.pl_time_year2, ss.pl_time_month2, ss.pl_time_day2, ss.pl_time_visual2)
+            timeByProfitLoss(data2, analysisType2, depth2, ss.pl_time_year2, ss.pl_time_month2, ss.pl_time_day2, ss.pl_time_visual2, 2)
 
 
 
