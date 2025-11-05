@@ -122,15 +122,15 @@ def analysis():
                         ss.upF[value] = data_.copy()
 
                         aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly'else None
-                        data_.set_index('Date/Time', inplace=True)
-                        data_ = data_.resample(aggregation).sum()
+                        # data_.set_index('Date/Time', inplace=True)
+                        # data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
                         if resp != 'Select Column':
                            if data_[resp].dtype == 'O':
                                st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
                            else:
                                data_[resp] = data_[resp].astype(float)
-                               fig = px.line(data_frame = data_, x = data_.index, y = resp, title=f'{resp} By Time')
+                               fig = px.line(data_frame = data_, x = data_['Date/Time'], y = resp, title=f'{resp} By Time')
                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
 
                     
@@ -175,7 +175,7 @@ def analysis():
                             if posSize > 0:
                                 data_['Position size (qty)'] = data_['Position size (qty)'] * posSize
                                 data_[net_pl] = data_[net_pl] * posSize
-                            else:
+                            elif posSize < 0:
                                 data_['Position size (qty)'] = data_['Position size (qty)'] /  (-1*posSize)
                                 data_[net_pl] = data_[net_pl] / (-1*posSize)
                         set22.dataframe(data_[[price_col, 'Position size (qty)', 'Position size (value)', net_pl]].head(), use_container_width=True)
@@ -183,15 +183,15 @@ def analysis():
                         ss.upF[value] = data_.copy()
 
                         aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
-                        data_.set_index('Date/Time', inplace=True)
-                        data_ = data_.resample(aggregation).sum()
+                        # data_.set_index('Date/Time', inplace=True)
+                        # data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
                         if resp != 'Select Column':
                             if data_[resp].dtype == 'O':
                                 st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
                             else:
                                 data_[resp] = data_[resp].astype(float)
-                                fig = px.line(data_frame = data_, x = data_.index, y = resp, title=f'{resp} By Time')
+                                fig = px.line(data_frame = data_, x = data_['Date/Time'], y = resp, title=f'{resp} By Time')
                                 st.plotly_chart(fig, theme='streamlit', use_container_width=True)
 
     st.markdown('<br><br>', unsafe_allow_html=True)
