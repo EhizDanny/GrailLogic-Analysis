@@ -211,12 +211,12 @@ def analysis():
         
     colsy1, colsy2, colsy3 = st.columns([1,1,3], gap='small')
     with colsy1:
-        dataZ = colsy1.multiselect('Select Dataset To Plot', options=['Select One']+list(ss.upF.keys()), key='cum_data')
+        dataZ = colsy1.multiselect('Select Dataset To Plot', options=list(ss.upF.keys()), key='cum_data')
     with colsy2:
         resp1 = colsy2.selectbox('Select Column', options = ['Cumulative P&L USD', 'Cumulative P&L %'], key='cum_resp1', index=0)
     with colsy3:
-        shows = colsy3.multiselect('Show Quick Snippet Of Data', options=['Select One']+list(ss.upF.keys()), key='cum_shows', placeholder='Select datasets to view data snippets')
-    if shows != 'Select One':
+        shows = colsy3.multiselect('Show Quick Snippet Of Data', options=list(ss.upF.keys()), key='cum_shows', placeholder='Select datasets to view data snippets')
+    if shows:
         selected_shows = [s for s in shows if s != 'Select One']
         if len(selected_shows) > 0:
             col_a, col_b = st.columns([1, 1], gap='large')
@@ -230,7 +230,7 @@ def analysis():
                         st.dataframe(ss.upF[dataq][['Date/Time', priceCol, net_pl_, 'Position size (qty)', 'Position size (value)', resp1]].tail(), use_container_width=True)
                     else:
                         st.info(f"Column '{resp1}' not found in {dataq}")
-    if dataZ != 'Select One':
+    if dataZ:
         if len(dataZ) >0:
             forPurposeOfTitle = ''
             cum_combined = pd.DataFrame()
@@ -239,9 +239,12 @@ def analysis():
                 forPurposeOfTitle += dataw + ', '
 
             cum_combined.set_index('Date/Time', inplace=True)
+            net_pnl_ = [i for i in cum_combined.columns if 'Net P&L' in i][0]
             cum_combined = cum_combined.sort_index()
-            
-            figc = px.line(data_frame = cum_combined, x = cum_combined.index, y = resp1, title=f'{resp1} Over Time for {forPurposeOfTitle}')
+            cum_combined['Combined Cum P&L'] = cum_combined[net_pnl_].cumsum()
+            cum_combined.drop(['Cumulative P&L USD', 'Cumulative P&L %'], axis=1, inplace=True, errors='ignore')
+
+            figc = px.line(data_frame = cum_combined, x = cum_combined.index, y = 'Combined Cum P&L', title=f'{resp1} Over Time for {forPurposeOfTitle}')
             st.plotly_chart(figc, theme='streamlit', use_container_width=True, )
         
         
@@ -1052,5 +1055,4 @@ with tab26:
 
 st.markdown('<br><br>', unsafe_allow_html=True)
 if st.button('Manual Rerun'):
-
     st.rerun()
