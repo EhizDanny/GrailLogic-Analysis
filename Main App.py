@@ -114,23 +114,25 @@ def analysis():
                             if posSize > 0:
                                 data_['Position size (qty)'] = data_['Position size (qty)'] * posSize
                                 data_[net_pl] = data_[net_pl] * posSize
+                                data_['Cumulative P&L USD'] = data_[net_pl].cumsum()
                             else:
                                 data_['Position size (qty)'] = data_['Position size (qty)'] /  (-1*posSize)
                                 data_[net_pl] = data_[net_pl] / (-1*posSize)
+                                data_['Cumulative P&L USD'] = data_[net_pl].cumsum()
                         set2.dataframe(data_[[price_col, 'Position size (qty)', 'Position size (value)', net_pl]].head(), use_container_width=True)
 
                         ss.upF[value] = data_.copy()
 
                         aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly'else None
-                        # data_.set_index('Date/Time', inplace=True)
-                        # data_ = data_.resample(aggregation).sum()
+                        data_.set_index('Date/Time', inplace=True)
+                        data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
                         if resp != 'Select Column':
                            if data_[resp].dtype == 'O':
                                st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
                            else:
                                data_[resp] = data_[resp].astype(float)
-                               fig = px.line(data_frame = data_, x = data_['Date/Time'], y = resp, title=f'{resp} By Time')
+                               fig = px.line(data_frame = data_, x = data_.index, y = resp, title=f'{resp} By Time')
                                st.plotly_chart(fig, theme='streamlit', use_container_width=True)
 
                     
@@ -175,25 +177,75 @@ def analysis():
                             if posSize > 0:
                                 data_['Position size (qty)'] = data_['Position size (qty)'] * posSize
                                 data_[net_pl] = data_[net_pl] * posSize
+                                data_['Cumulative P&L USD'] = data_[net_pl].cumsum()
                             elif posSize < 0:
                                 data_['Position size (qty)'] = data_['Position size (qty)'] /  (-1*posSize)
                                 data_[net_pl] = data_[net_pl] / (-1*posSize)
+                                data_['Cumulative P&L USD'] = data_[net_pl].cumsum()
                         set22.dataframe(data_[[price_col, 'Position size (qty)', 'Position size (value)', net_pl]].head(), use_container_width=True)
+                        
 
                         ss.upF[value] = data_.copy()
 
                         aggregation = 'D' if aggre == 'Daily' else 'M' if aggre == 'Monthly' else 'Y'  if aggre == 'Yearly' else 'W' if aggre == 'Weekly' else None
-                        # data_.set_index('Date/Time', inplace=True)
-                        # data_ = data_.resample(aggregation).sum()
+                        data_.set_index('Date/Time', inplace=True)
+                        data_ = data_.resample(aggregation).sum()
                         numeric_cols = data_.select_dtypes(include=[np.number]).columns.tolist()
                         if resp != 'Select Column':
                             if data_[resp].dtype == 'O':
                                 st.info(f'Wrong data type selected. Please select any of the numerical column {numeric_cols}')
                             else:
                                 data_[resp] = data_[resp].astype(float)
-                                fig = px.line(data_frame = data_, x = data_['Date/Time'], y = resp, title=f'{resp} By Time')
+                                fig = px.line(data_frame = data_, x = data_.index, y = resp, title=f'{resp} By Time')
                                 st.plotly_chart(fig, theme='streamlit', use_container_width=True)
 
+
+
+    ### --------------------------------------- Single Or Joint Cumulative Analysis Of Profit And Loss ---------------------------------------
+    st.markdown('<br><br>', unsafe_allow_html=True)
+    antd.divider('Single Or Joint Cumulative Analysis Of Profit And Loss', align='center')
+    # for index, value in enumerate(ss.upF.keys()):
+        # This chart displays either single or joint cumulative profit and loss analysis based on user selection.
+        #     It will not aggregate the data, because I noticed that the aggregation of sum of cumulative profit and loss 
+        #     alters the true representation of cumulative profit and loss over time.
+        
+    colsy1, colsy2, colsy3 = st.columns([1,1,3], gap='small')
+    with colsy1:
+        dataZ = colsy1.multiselect('Select Dataset', options=['Select One']+list(ss.upF.keys()), key='cum_data')
+    with colsy2:
+        resp1 = colsy2.selectbox('Select Column', options = ['Cumulative P&L USD', 'Cumulative P&L %'], key='cum_resp1', index=0)
+    with colsy3:
+        shows = colsy3.multiselect('Show Quick Snippet Of Data', options=['Select One']+list(ss.upF.keys()), key='cum_shows', placeholder='Select datasets to view data snippets')
+    if shows != 'Select One':
+        selected_shows = [s for s in shows if s != 'Select One']
+        if len(selected_shows) > 0:
+            col_a, col_b = st.columns([1, 1], gap='large')
+            for idx, dataq in enumerate(selected_shows):
+                target = col_a if idx % 2 == 0 else col_b
+                with target:
+                    st.markdown(f'**Data From {dataq}**')
+                    if resp1 in ss.upF[dataq].columns:
+                        priceCol = [i for i in ss.upF[dataq].columns if 'Price' in i][0]
+                        net_pl_ = [i for i in ss.upF[dataq].columns if 'Net P&L' in i][0]
+                        st.dataframe(ss.upF[dataq][['Date/Time', priceCol, net_pl_, 'Position size (qty)', 'Position size (value)', resp1]].tail(), use_container_width=True)
+                    else:
+                        st.info(f"Column '{resp1}' not found in {dataq}")
+    if dataZ != 'Select One':
+        if len(dataZ) >0:
+            forPurposeOfTitle = ''
+            cum_combined = pd.DataFrame()
+            for _ , dataw in enumerate(dataZ):
+                cum_combined = pd.concat([cum_combined, ss.upF[dataw]], axis=0)
+                forPurposeOfTitle += dataw + ', '
+
+            cum_combined.set_index('Date/Time', inplace=True)
+            cum_combined = cum_combined.sort_index()
+            
+            figc = px.line(data_frame = cum_combined, x = cum_combined.index, y = resp1, title=f'{resp1} Over Time for {forPurposeOfTitle}')
+            st.plotly_chart(figc, theme='streamlit', use_container_width=True, )
+        
+        
+    ################### -------------------------- Joint Analysis --------------------------
     st.markdown('<br><br>', unsafe_allow_html=True)
     st.markdown(
         "<h2 style='color: #5409DA; font-size: 36px; text-align: center;'>Joint Analysis</h2>", unsafe_allow_html=True)
