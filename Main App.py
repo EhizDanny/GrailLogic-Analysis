@@ -211,7 +211,7 @@ def analysis():
         
     colsy1, colsy2, colsy3 = st.columns([1,1,3], gap='small')
     with colsy1:
-        dataZ = colsy1.multiselect('Select Dataset', options=['Select One']+list(ss.upF.keys()), key='cum_data')
+        dataZ = colsy1.multiselect('Select Dataset To Plot', options=['Select One']+list(ss.upF.keys()), key='cum_data')
     with colsy2:
         resp1 = colsy2.selectbox('Select Column', options = ['Cumulative P&L USD', 'Cumulative P&L %'], key='cum_resp1', index=0)
     with colsy3:
@@ -1052,4 +1052,5 @@ with tab26:
 
 st.markdown('<br><br>', unsafe_allow_html=True)
 if st.button('Manual Rerun'):
+
     st.rerun()
