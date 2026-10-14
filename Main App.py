@@ -9,6 +9,7 @@ from streamlit_extras.stylable_container import stylable_container
 import warnings
 warnings.filterwarnings('ignore')
 import plotly.graph_objects as go
+from column_config import apply_mapping
 
 # import warnings
 # warnings.filterwarnings('ignore')
@@ -59,6 +60,12 @@ def analysis():
         # Preprocess the data upon upload and save it to df holder
         if uploaded: 
             df = pd.read_csv(uploaded)
+            df, missing = apply_mapping(df)
+            if missing:
+                st.sidebar.error(
+                    f"Data {i}: columns not found: " + ', '.join(f"'{exp}'" for _, exp in missing)
+                    + ". Fix them on the Column Settings page.")
+                continue
             # cleanCol(df, 'Net P&L %', '%')
             # cleanCol(df, 'Cumulative P&L %', '%')
             # cleanCol(df, 'Drawdown %', '%')
